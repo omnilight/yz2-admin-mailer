@@ -1,0 +1,22 @@
+{
+    "name": "omnilight/yz2-admin-mailer",
+    "description": "Module for sending emails from admin panel",
+    "keywords": ["yii2", "yz2", "mail"],
+    "minimum-stability": "dev",
+    "authors": [
+        {
+            "name": "Pavel Agalecky",
+            "email": "pavel.agalecky@gmail.com"
+        }
+    ],
+    "type": "yii2-extension",
+    "require": {
+        "php": ">=5.4.0",
+        "yiisoft/yii2": "*",
+        "omnilight/yz2-admin": "*",
+        "yiisoft/yii2-swiftmailer": "*"
+    },
+    "autoload": {
+        "psr-4": { "yz\\admin\\mailer\\": "" }
+    }
+}

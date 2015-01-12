@@ -15,8 +15,8 @@ class m150112_121409_admin_mailer_initial extends Migration
         $this->createTable('{{%admin_mails}}', [
             'id' => Schema::TYPE_PK,
             'status' => Schema::TYPE_STRING.'(16)',
-            'receiver' => Schema::TYPE_STRING.'(16)',
-            'receiver_data' => Schema::TYPE_TEXT,
+            'receivers_provider' => Schema::TYPE_STRING,
+            'receivers_provider_data' => Schema::TYPE_TEXT,
             'from' => Schema::TYPE_STRING,
             'from_name' => Schema::TYPE_STRING,
             'subject' => Schema::TYPE_STRING,

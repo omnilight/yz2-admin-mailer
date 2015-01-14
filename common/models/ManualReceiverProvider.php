@@ -8,7 +8,7 @@ use yii\helpers\ArrayHelper;
 /**
  * Class ManualReceiverProvider
  */
-class ManualReceiverProvider extends Model implements MailReceiverProviderInterface
+class ManualReceiverProvider extends Model implements ReceiversProviderInterface
 {
     /**
      * @var string
@@ -18,7 +18,7 @@ class ManualReceiverProvider extends Model implements MailReceiverProviderInterf
     /**
      * @return array
      */
-    public function getReceiversProviderData()
+    public function getProviderData()
     {
         return [
             'to' => $this->to,
@@ -31,5 +31,13 @@ class ManualReceiverProvider extends Model implements MailReceiverProviderInterf
     public static function backendFormView()
     {
         return '@yz/admin/mailer/backend/views/receiversProviders/manual.php';
+    }
+
+    /**
+     * @return string
+     */
+    public static function providerTitle()
+    {
+        return \Yii::t('admin/mailer', 'Manual receiver');
     }
 }

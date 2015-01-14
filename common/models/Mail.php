@@ -3,7 +3,9 @@
 namespace yz\admin\mailer\common\models;
 
 use Yii;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+use yz\admin\mailer\common\Module;
 use yz\interfaces\ModelInfoInterface;
 
 /**
@@ -19,6 +21,8 @@ use yz\interfaces\ModelInfoInterface;
  * @property string $body_html
  * @property string $boxy_text
  * @property string $created_at
+ *
+ * @property ReceiversProviderInterface $receiversProvider
  */
 class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
 {
@@ -53,14 +57,32 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return Yii::t('admin/mailer', 'Mails');
     }
 
+    public function init()
+    {
+        parent::init();
+        if ($this->receivers_provider === null) {
+            $this->receivers_provider = ManualReceiverProvider::className();
+        }
+        if ($this->receivers_provider_data === null) {
+            $this->receivers_provider_data = '[]';
+        }
+    }
+
+
     /**
      * @inheritdoc
      */
     public function rules()
     {
         return [
+            [['receivers_provider'], 'required'],
+            [['body_html'], 'required'],
+            [['from'], 'required'],
+            [['from_name'], 'required'],
+            [['subject'], 'required'],
+
             [['body_html', 'boxy_text'], 'string'],
-            [['receivers_provider'], 'string'],
+            [['receivers_provider'], 'in', 'range' => array_keys(self::getReceiversProviderValues())],
             [['from', 'from_name', 'subject'], 'string', 'max' => 255]
         ];
     }
@@ -98,28 +120,46 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     }
 
     /**
-     * @var MailReceiverProviderInterface
+     * @var array
      */
     protected $_receiversProvider;
 
     /**
-     * @return MailReceiverProviderInterface
+     * @return ReceiversProviderInterface
      */
     public function getReceiversProvider()
     {
+        $hash = md5($this->receivers_provider);
         if ($this->_receiversProvider === null) {
-            $this->_receiversProvider = Yii::createObject($this->receivers_provider, Json::decode($this->receivers_provider_data));
+            $this->_receiversProvider = [Yii::createObject(array_merge([
+                'class' => $this->receivers_provider,
+            ], Json::decode($this->receivers_provider_data))), $hash];
+        } elseif ($this->_receiversProvider[1] !== $hash) {
+            $this->receivers_provider_data = [];
+            $this->_receiversProvider = [Yii::createObject(array_merge([
+                'class' => $this->receivers_provider,
+            ], Json::decode($this->receivers_provider_data))), $hash];
         }
 
-        return $this->_receiversProvider;
+        return $this->_receiversProvider[0];
     }
 
     public function beforeSave($insert)
     {
-        $this->receivers_provider_data = Json::encode($this->_receiversProvider->getReceiversProviderData());
+        $this->receivers_provider_data = Json::encode($this->getReceiversProvider()->getProviderData());
 
         return parent::beforeSave($insert);
     }
 
-
+    /**
+     * @return array
+     */
+    public static function getReceiversProviderValues()
+    {
+        $values = [];
+        foreach (Yii::$app->getModule('adminMailer')->receiversProviders as $providerClass) {
+            $values[$providerClass] = call_user_func([$providerClass, 'providerTitle']);
+        }
+        return $values;
+    }
 }

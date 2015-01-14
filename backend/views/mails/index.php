@@ -19,14 +19,12 @@ $this->params['header'] = $this->title;
 <?php $box = Box::begin(['cssClass' => 'mail-index box-primary']) ?>
     <div class="text-right">
         <?php echo ActionButtons::widget([
-            'order' => [['search'], ['export', 'create', 'delete', 'return']],
+            'order' => [['create', 'delete', 'return']],
             'gridId' => 'mail-grid',
             'searchModel' => $searchModel,
             'modelClass' => 'yz\admin\mailer\common\models\Mail',
         ]) ?>
     </div>
-
-    <?php echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <?= GridView::widget([
         'id' => 'mail-grid',

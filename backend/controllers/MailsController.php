@@ -2,22 +2,23 @@
 
 namespace yz\admin\mailer\backend\controllers;
 
-use Yii;
-use yz\admin\mailer\common\models\Mail;
-use yz\admin\mailer\backend\models\MailSearch;
 use backend\base\Controller;
-use yii\web\NotFoundHttpException;
+use Yii;
 use yii\filters\VerbFilter;
 use yii\helpers\ArrayHelper;
-use yii\web\Response;
+use yii\web\NotFoundHttpException;
 use yz\admin\actions\ExportAction;
-use yz\admin\widgets\ActiveForm;
+use yz\admin\helpers\AdminHtml;
+use yz\admin\mailer\backend\models\MailSearch;
+use yz\admin\mailer\common\models\Mail;
 
 /**
  * MailsController implements the CRUD actions for Mail model.
  */
 class MailsController extends Controller
 {
+    const ACTION_CHANGE_RECEIVERS_PROVIDER = 'changeReceiversProvider';
+
     public function behaviors()
     {
         return ArrayHelper::merge(parent::behaviors(), [
@@ -35,11 +36,11 @@ class MailsController extends Controller
         return array_merge(parent::actions(), [
             'export' => [
                 'class' => ExportAction::className(),
-                'dataProvider' => function($params) {
-                        $searchModel = new MailSearch;
-                        $dataProvider = $searchModel->search($params);
-                        return $dataProvider;
-                    },
+                'dataProvider' => function ($params) {
+                    $searchModel = new MailSearch;
+                    $dataProvider = $searchModel->search($params);
+                    return $dataProvider;
+                },
             ]
         ]);
     }
@@ -63,16 +64,20 @@ class MailsController extends Controller
     public function getGridColumns()
     {
         return [
-			'id',
-			'status',
-			'receivers_provider',
-			'receivers_provider_data:ntext',
-			'from',
-			// 'from_name',
-			// 'subject',
-			// 'body_html:ntext',
-			// 'boxy_text:ntext',
-			// 'created_at:datetime',
+            'id',
+            'status',
+            [
+                'attribute' => 'receivers_provider',
+                'value' => function (Mail $data) {
+                    return $data->getReceiversProvider()->title;
+                }
+            ],
+//			'from',
+            'from_name',
+            'subject',
+//			 'body_html:ntext',
+//			 'boxy_text:ntext',
+            'created_at:datetime',
         ];
     }
 
@@ -85,14 +90,16 @@ class MailsController extends Controller
     {
         $model = new Mail;
 
-		if ($model->load(\Yii::$app->request->post()) && $model->save()) {
-			\Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
-			return $this->getCreateUpdateResponse($model);
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+        if ($model->load(Yii::$app->request->post()) && Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) == self::ACTION_CHANGE_RECEIVERS_PROVIDER) {
+            // Do nothing
+        } else if ($model->load(\Yii::$app->request->post()) && $model->save()) {
+            \Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
+            return $this->getCreateUpdateResponse($model);
         }
+
+        return $this->render('create', [
+            'model' => $model,
+        ]);
     }
 
     /**
@@ -105,15 +112,17 @@ class MailsController extends Controller
     {
         $model = $this->findModel($id);
 
-		if ($model->load(\Yii::$app->request->post()) && $model->save()) {
-			\Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
-			return $this->getCreateUpdateResponse($model);
-		} else {
-			return $this->render('update', [
-				'model' => $model,
-			]);
-		}
-	}
+        if ($model->load(Yii::$app->request->post()) && Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) == self::ACTION_CHANGE_RECEIVERS_PROVIDER) {
+            // Do nothing
+        } else if ($model->load(\Yii::$app->request->post()) && $model->save()) {
+            \Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
+            return $this->getCreateUpdateResponse($model);
+        }
+
+        return $this->render('update', [
+            'model' => $model,
+        ]);
+    }
 
 
     /**

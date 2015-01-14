@@ -24,7 +24,7 @@ class Module extends \yz\admin\mailer\common\Module
                     [
                         'label' => \Yii::t('admin/mailer', 'Emails'),
                         'icon' => Icons::o('envelope-o'),
-                        'route' => ['/admin/users/index'],
+                        'route' => ['/adminMailer/mails/index'],
                     ],
                 ],
             ],

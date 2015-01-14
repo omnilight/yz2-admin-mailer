@@ -18,5 +18,8 @@
     },
     "autoload": {
         "psr-4": { "yz\\admin\\mailer\\": "" }
+    },
+    "extra": {
+        "bootstrap": "yz\\admin\\mailer\\Bootstrap"
     }
 }

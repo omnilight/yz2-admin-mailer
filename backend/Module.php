@@ -1,6 +1,7 @@
 <?php
 
 namespace yz\admin\mailer\backend;
+use yz\icons\Icons;
 
 
 /**
@@ -13,4 +14,20 @@ class Module extends \yz\admin\mailer\common\Module
         return \Yii::t('admin/mailer', 'Mailing module');
     }
 
+    public function getAdminMenu()
+    {
+        return [
+            [
+                'label' => \Yii::t('admin/mailer', 'Mail sender'),
+                'icon' => Icons::o('envelope'),
+                'items' => [
+                    [
+                        'label' => \Yii::t('admin/mailer', 'Emails'),
+                        'icon' => Icons::o('envelope-o'),
+                        'route' => ['/admin/users/index'],
+                    ],
+                ],
+            ],
+        ];
+    }
 }

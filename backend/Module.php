@@ -18,7 +18,7 @@ class Module extends \yz\admin\mailer\common\Module
     {
         return [
             [
-                'label' => \Yii::t('admin/mailer', 'Mail sender'),
+                'label' => \Yii::t('admin/mailer', 'Sending emails'),
                 'icon' => Icons::o('envelope'),
                 'items' => [
                     [

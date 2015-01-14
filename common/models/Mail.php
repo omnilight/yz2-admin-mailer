@@ -3,6 +3,8 @@
 namespace yz\admin\mailer\common\models;
 
 use Yii;
+use yii\base\Model;
+use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yz\admin\mailer\common\Module;
@@ -19,10 +21,10 @@ use yz\interfaces\ModelInfoInterface;
  * @property string $from_name
  * @property string $subject
  * @property string $body_html
- * @property string $boxy_text
  * @property string $created_at
+ * @property string $sent_at
  *
- * @property ReceiversProviderInterface $receiversProvider
+ * @property ReceiversProviderInterface|Model $receiversProvider
  */
 class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
 {
@@ -77,11 +79,11 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return [
             [['receivers_provider'], 'required'],
             [['body_html'], 'required'],
+            [['body_html'], 'string'],
             [['from'], 'required'],
             [['from_name'], 'required'],
             [['subject'], 'required'],
 
-            [['body_html', 'boxy_text'], 'string'],
             [['receivers_provider'], 'in', 'range' => array_keys(self::getReceiversProviderValues())],
             [['from', 'from_name', 'subject'], 'string', 'max' => 255]
         ];
@@ -95,14 +97,15 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return [
             'id' => Yii::t('admin/mailer', 'ID'),
             'status' => Yii::t('admin/mailer', 'Status'),
+            'receivers_provider' => 'Тип получателей',
             'receiver' => Yii::t('admin/mailer', 'Receiver'),
             'receiver_data' => Yii::t('admin/mailer', 'Receiver Data'),
             'from' => Yii::t('admin/mailer', 'From'),
             'from_name' => Yii::t('admin/mailer', 'From Name'),
             'subject' => Yii::t('admin/mailer', 'Subject'),
             'body_html' => Yii::t('admin/mailer', 'Body Html'),
-            'boxy_text' => Yii::t('admin/mailer', 'Boxy Text'),
             'created_at' => Yii::t('admin/mailer', 'Created At'),
+            'sent_at' => Yii::t('admin/mailer', 'Sent At'),
         ];
     }
 
@@ -144,9 +147,44 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return $this->_receiversProvider[0];
     }
 
+    /**
+     * @param array $data
+     * @return bool
+     */
+    public function loadAll($data)
+    {
+        $result = $this->load($data);
+        $result = $this->receiversProvider->load($data) && $result;
+        return $result;
+    }
+
+    /**
+     * @return bool
+     */
+    public function validateAll()
+    {
+        $result = $this->validate();
+        $result = $this->receiversProvider->validate() && $result;
+        return $result;
+    }
+
+    /**
+     * @param bool $runValidation
+     * @return bool
+     */
+    public function saveAll($runValidation = true)
+    {
+        if (!$runValidation || $this->validateAll()) {
+            return $this->save(false);
+        } else {
+            return false;
+        }
+    }
+
     public function beforeSave($insert)
     {
         $this->receivers_provider_data = Json::encode($this->getReceiversProvider()->getProviderData());
+        $this->status = self::STATUS_NEW;
 
         return parent::beforeSave($insert);
     }
@@ -161,5 +199,19 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
             $values[$providerClass] = call_user_func([$providerClass, 'providerTitle']);
         }
         return $values;
+    }
+
+    public function send()
+    {
+        $this->updateAttributes(['status' => self::STATUS_SENDING]);
+
+        foreach ($this->receiversProvider->receivers as $receiver) {
+            $receiver->sendToReceiver($this);
+        }
+
+        $this->updateAttributes([
+            'status' => self::STATUS_SENT,
+            'last_sent_at' => new Expression('NOW()'),
+        ]);
     }
 }

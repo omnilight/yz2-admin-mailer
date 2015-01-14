@@ -11,6 +11,7 @@ use yz\admin\actions\ExportAction;
 use yz\admin\helpers\AdminHtml;
 use yz\admin\mailer\backend\models\MailSearch;
 use yz\admin\mailer\common\models\Mail;
+use yz\Yz;
 
 /**
  * MailsController implements the CRUD actions for Mail model.
@@ -18,6 +19,7 @@ use yz\admin\mailer\common\models\Mail;
 class MailsController extends Controller
 {
     const ACTION_CHANGE_RECEIVERS_PROVIDER = 'changeReceiversProvider';
+    const ACTION_SEND_MAIL = 'sendMail';
 
     public function behaviors()
     {
@@ -69,7 +71,7 @@ class MailsController extends Controller
             [
                 'attribute' => 'receivers_provider',
                 'value' => function (Mail $data) {
-                    return $data->getReceiversProvider()->title;
+                    return $data->getReceiversProvider()->providerTitle();
                 }
             ],
 //			'from',
@@ -78,6 +80,7 @@ class MailsController extends Controller
 //			 'body_html:ntext',
 //			 'boxy_text:ntext',
             'created_at:datetime',
+            'last_sent_at:datetime',
         ];
     }
 
@@ -90,11 +93,16 @@ class MailsController extends Controller
     {
         $model = new Mail;
 
-        if ($model->load(Yii::$app->request->post()) && Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) == self::ACTION_CHANGE_RECEIVERS_PROVIDER) {
-            // Do nothing
-        } else if ($model->load(\Yii::$app->request->post()) && $model->save()) {
-            \Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
-            return $this->getCreateUpdateResponse($model);
+        if ($model->loadAll(Yii::$app->request->post())) {
+            if (Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER && $model->saveAll()) {
+                \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
+                if ($this->sendEmails($model)) {
+                    \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
+                } else {
+                    Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+                }
+                return $this->getCreateUpdateResponse($model);
+            }
         }
 
         return $this->render('create', [
@@ -112,16 +120,36 @@ class MailsController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->load(Yii::$app->request->post()) && Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) == self::ACTION_CHANGE_RECEIVERS_PROVIDER) {
-            // Do nothing
-        } else if ($model->load(\Yii::$app->request->post()) && $model->save()) {
-            \Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
-            return $this->getCreateUpdateResponse($model);
+        if ($model->loadAll(Yii::$app->request->post())) {
+            if (Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER && $model->saveAll()) {
+                \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
+                if ($this->sendEmails($model)) {
+                    \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
+                } else {
+                    Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+                }
+                return $this->getCreateUpdateResponse($model);
+            }
         }
 
         return $this->render('update', [
             'model' => $model,
         ]);
+    }
+
+    /**
+     * @param Mail $mail
+     * @return bool true if we can send mails immediately
+     */
+    protected function sendEmails($mail)
+    {
+        if ($mail->receiversProvider->canSendImmediately) {
+            $mail->send();
+            return true;
+        } else {
+            $mail->updateAttributes(['status' => Mail::STATUS_WAITING]);
+            return false;
+        }
     }
 
 
@@ -140,7 +168,7 @@ class MailsController extends Controller
         foreach ($id as $id_)
             $this->findModel($id_)->delete();
 
-        \Yii::$app->session->setFlash(\yz\Yz::FLASH_SUCCESS, $message);
+        \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, $message);
 
         return $this->redirect(['index']);
     }

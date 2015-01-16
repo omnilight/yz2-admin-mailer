@@ -99,12 +99,16 @@ class MailsController extends Controller
         if ($model->loadAll(Yii::$app->request->post())) {
             if (Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER && $model->saveAll()) {
                 \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
-                if ($this->sendEmails($model)) {
-                    \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
-                } else {
-                    Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
-                }
-                return $this->getCreateUpdateResponse($model);
+                return $this->getCreateUpdateResponse($model, [
+                    self::ACTION_SEND_MAIL => function () use ($model) {
+                        if ($this->sendEmails($model)) {
+                            \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
+                        } else {
+                            Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+                        }
+                        return $this->redirect(['index']);
+                    }
+                ]);
             }
         }
 
@@ -126,12 +130,16 @@ class MailsController extends Controller
         if ($model->loadAll(Yii::$app->request->post())) {
             if (Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER && $model->saveAll()) {
                 \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
-                if ($this->sendEmails($model)) {
-                    \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
-                } else {
-                    Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
-                }
-                return $this->getCreateUpdateResponse($model);
+                return $this->getCreateUpdateResponse($model, [
+                    self::ACTION_SEND_MAIL => function () use ($model) {
+                        if ($this->sendEmails($model)) {
+                            \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
+                        } else {
+                            Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+                        }
+                        return $this->redirect(['index']);
+                    }
+                ]);
             }
         }
 

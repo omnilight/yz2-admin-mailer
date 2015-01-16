@@ -23,7 +23,7 @@ class m150112_121409_admin_mailer_initial extends Migration
             'body_html' => Schema::TYPE_TEXT,
             'boxy_text' => Schema::TYPE_TEXT,
             'created_at' => Schema::TYPE_DATETIME,
-        ]);
+        ], $tableOptions);
     }
 
     public function down()

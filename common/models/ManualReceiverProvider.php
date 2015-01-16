@@ -15,6 +15,14 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
      */
     public $to;
 
+    public function rules()
+    {
+        return [
+            [['to'], 'required'],
+        ];
+    }
+
+
     /**
      * @return array
      */

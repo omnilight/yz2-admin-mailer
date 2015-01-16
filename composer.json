@@ -14,7 +14,8 @@
         "php": ">=5.4.0",
         "yiisoft/yii2": "*",
         "omnilight/yz2-admin": "*",
-        "yiisoft/yii2-swiftmailer": "*"
+        "yiisoft/yii2-swiftmailer": "*",
+        "yzalis/crontab": "*"
     },
     "autoload": {
         "psr-4": { "yz\\admin\\mailer\\": "" }

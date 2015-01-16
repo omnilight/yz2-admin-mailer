@@ -18,7 +18,7 @@ use yz\admin\widgets\FormBox;
 <?php $box->beginBody() ?>
 <div class="row">
     <div class="col-md-8 col-md-offset-1">
-        <?= $form->field($model, 'receivers_provider')->dropDownList($model->getReceiversProviderValues())->hint(Yii::t('admin/mailer', 'Change of this field will reload current page')) ?>
+        <?= $form->field($model, 'receiversProviderAttribute')->dropDownList($model->getReceiversProviderValues())->hint(Yii::t('admin/mailer', 'Change of this field will reload current page')) ?>
     </div>
 </div>
 <?php echo $this->render($model->receiversProvider->backendFormView(), [
@@ -59,7 +59,7 @@ use yz\admin\widgets\FormBox;
 <?php FormBox::end() ?>
 <?php
 
-$id = \yii\helpers\Html::getInputId($model, 'receivers_provider');
+$id = \yii\helpers\Html::getInputId($model, 'receiversProviderAttribute');
 $actionName = AdminHtml::ACTION_BUTTON_NAME;
 $actionValue = MailsController::ACTION_CHANGE_RECEIVERS_PROVIDER;
 $js =<<<JS
@@ -67,6 +67,7 @@ $js =<<<JS
     $('#{$id}').on('change', function() {
         var _form = $('#{$form->id}');
         _form.append($('<input type="hidden">').attr('name', '{$actionName}').val('{$actionValue}'));
+        _form.data('yiiActiveForm').validated = true;
         _form.submit();
     });
 })();

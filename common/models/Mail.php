@@ -6,6 +6,7 @@ use Yii;
 use yii\base\Model;
 use yii\behaviors\TimestampBehavior;
 use yii\db\Expression;
+use yii\di\Instance;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
 use yz\admin\mailer\common\Module;
@@ -26,6 +27,7 @@ use yz\interfaces\ModelInfoInterface;
  * @property string $sent_at
  *
  * @property ReceiversProviderInterface|Model $receiversProvider
+ * @property string $receiversProviderAttribute
  */
 class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
 {
@@ -97,6 +99,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
             [['subject'], 'required'],
 
             [['receivers_provider'], 'in', 'range' => array_keys(self::getReceiversProviderValues())],
+            [['receiversProviderAttribute'], 'in', 'range' => array_keys(self::getReceiversProviderValues())],
             [['from', 'from_name', 'subject'], 'string', 'max' => 255]
         ];
     }
@@ -109,7 +112,8 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return [
             'id' => Yii::t('admin/mailer', 'ID'),
             'status' => Yii::t('admin/mailer', 'Status'),
-            'receivers_provider' => 'Тип получателей',
+            'receivers_provider' => Yii::t('admin/mailer', 'Receivers type'),
+            'receiversProviderAttribute' => Yii::t('admin/mailer', 'Receivers type'),
             'receiver' => Yii::t('admin/mailer', 'Receiver'),
             'receiver_data' => Yii::t('admin/mailer', 'Receiver Data'),
             'from' => Yii::t('admin/mailer', 'From'),
@@ -157,6 +161,42 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         }
 
         return $this->_receiversProvider[0];
+    }
+
+    /**
+     * @param array|string|ReceiversProviderInterface $receiversProvider
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function setReceiversProvider($receiversProvider)
+    {
+        if (is_array($receiversProvider)) {
+            $receiversProvider = Instance::ensure($receiversProvider, 'yz\admin\mailer\common\models\ReceiversProviderInterface');
+        }
+
+        if ($receiversProvider instanceof ReceiversProviderInterface) {
+            $this->_receiversProvider = $receiversProvider;
+            $this->receivers_provider = get_class($receiversProvider);
+        } elseif (is_string($receiversProvider)) {
+            $this->receivers_provider = $receiversProvider;
+            $this->receivers_provider_data = '[]';
+            $this->_receiversProvider = null;
+        }
+    }
+
+    /**
+     * @return string
+     */
+    public function getReceiversProviderAttribute()
+    {
+        return $this->receivers_provider;
+    }
+
+    /**
+     * @param string $receiversProviderAttribute
+     */
+    public function setReceiversProviderAttribute($receiversProviderAttribute)
+    {
+        $this->setReceiversProvider($receiversProviderAttribute);
     }
 
     /**

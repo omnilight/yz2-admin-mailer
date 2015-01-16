@@ -16,7 +16,6 @@ interface MailReceiverInterface
      * @return array
      */
     public function getReceiverVariables();
-
     /**
      * Sends letter to the mail receiver
      * @param Mail $mail

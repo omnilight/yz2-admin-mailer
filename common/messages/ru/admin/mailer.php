@@ -17,10 +17,14 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
-    'Email получателей' => '',
+    'Available variables' => 'Доступные переменные',
+    'Description' => 'Описание',
+    'Email of the current recipient of the letter' => 'Электронная почта получателя письма',
+    'Following variables could be used in the mail body and subject in form <code>{variable_name}</code>' => 'Переменные ниже могут быть использованы в теле письма и в теме в следующем виде <code>{имя_переменной}</code>',
     'ID' => '',
-    'Receiver Data' => '',
-    'Sending emails' => 'Отправка почты',
+    'Receiver Data' => 'Данные получателей',
+    'Receivers type' => 'Тип получателей',
+    'Variable' => 'Переменная',
     'Body Html' => 'HTML-текст',
     'Change of this field will reload current page' => 'Изменение этого поля приведет к перезагрузке страницы',
     'Create & Send!' => 'Создать и отправить!',
@@ -38,6 +42,7 @@ return [
     'Receiver' => 'Получатель',
     'Save & Send!' => 'Сохранить и отправить!',
     'Sending' => 'Происходит отправка',
+    'Sending emails' => 'Отправка почты',
     'Sent' => 'Отправлено',
     'Sent At' => 'Дата отправки',
     'Status' => 'Статус',

@@ -1,6 +1,7 @@
 <?php
 
 namespace yz\admin\mailer\common\models;
+
 use yii\base\Model;
 use yii\helpers\ArrayHelper;
 
@@ -14,24 +15,6 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
      * @var string
      */
     public $to;
-
-    public function rules()
-    {
-        return [
-            [['to'], 'required'],
-        ];
-    }
-
-
-    /**
-     * @return array
-     */
-    public function getProviderData()
-    {
-        return [
-            'to' => $this->to,
-        ];
-    }
 
     /**
      * @return string
@@ -47,6 +30,28 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
     public static function providerTitle()
     {
         return \Yii::t('admin/mailer', 'Manual receiver');
+    }
+
+    public function rules()
+    {
+        return [
+            [['to'], 'required'],
+        ];
+    }
+
+    public function init()
+    {
+        parent::init();
+    }
+
+    /**
+     * @return array
+     */
+    public function getProviderData()
+    {
+        return [
+            'to' => $this->to,
+        ];
     }
 
     public function attributeLabels()

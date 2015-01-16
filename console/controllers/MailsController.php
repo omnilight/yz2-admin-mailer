@@ -34,6 +34,8 @@ class MailsController extends Controller
             $mail->send();
         }
 
+        $mutex->release(__CLASS__);
+
         return self::EXIT_CODE_NORMAL;
     }
 }

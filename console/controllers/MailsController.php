@@ -2,6 +2,7 @@
 
 namespace yz\admin\mailer\console\controllers;
 use console\base\Controller;
+use Crontab\Job;
 use yii\db\ActiveQuery;
 use yii\mutex\FileMutex;
 use yz\admin\mailer\common\models\Mail;

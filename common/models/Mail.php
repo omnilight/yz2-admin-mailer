@@ -4,6 +4,7 @@ namespace yz\admin\mailer\common\models;
 
 use Yii;
 use yii\base\Model;
+use yii\behaviors\TimestampBehavior;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
@@ -70,6 +71,17 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         }
     }
 
+    public function behaviors()
+    {
+        return [
+            'timestamp' => [
+                'class' => TimestampBehavior::className(),
+                'updatedAtAttribute' => null,
+                'value' => new Expression('NOW()'),
+            ]
+        ];
+    }
+
 
     /**
      * @inheritdoc
@@ -105,7 +117,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
             'subject' => Yii::t('admin/mailer', 'Subject'),
             'body_html' => Yii::t('admin/mailer', 'Body Html'),
             'created_at' => Yii::t('admin/mailer', 'Created At'),
-            'sent_at' => Yii::t('admin/mailer', 'Sent At'),
+            'last_sent_at' => Yii::t('admin/mailer', 'Sent At'),
         ];
     }
 

@@ -23,6 +23,8 @@ trait MailReceiverTrait
         $this->mailer
             ->compose('@yz/admin/mailer/common/mails/adminMailer.php', [
                 'mail' => $mail,
+                'subject' => strtr($mail->subject, $this->getReceiverVariables()),
+                'body' => strtr($mail->body_html, $this->getReceiverVariables()),
             ])
             ->setTo($this->getReceiverEmail())
             ->setFrom([$mail->from => $mail->from_name])

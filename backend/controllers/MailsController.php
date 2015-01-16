@@ -67,7 +67,10 @@ class MailsController extends Controller
     {
         return [
             'id',
-            'status',
+            [
+                'attribute' => 'status',
+                'titles' => Mail::getStatusValues()
+            ],
             [
                 'attribute' => 'receivers_provider',
                 'value' => function (Mail $data) {

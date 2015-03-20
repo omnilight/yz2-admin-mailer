@@ -2,6 +2,7 @@
 
 namespace yz\admin\mailer;
 
+use omnilight\scheduling\Schedule;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 
@@ -22,5 +23,25 @@ class Bootstrap implements BootstrapInterface
             'basePath' => '@yz/admin/mailer/common/messages',
             'sourceLanguage' => 'en-US',
         ];
+
+        if ($app instanceof \yii\console\Application) {
+            $this->schedule($app);
+        }
+    }
+
+    /**
+     * @param Application $app the application currently running
+     */
+    protected function schedule($app)
+    {
+        if ($app->has('schedule') == false) {
+            return;
+        }
+
+        /** @var Schedule $schedule */
+        $schedule = $app->get('schedule');
+
+        // Sending mails from backend
+        $schedule->command('adminMailer/mails');
     }
 }

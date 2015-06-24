@@ -1,22 +1,22 @@
 <?php
 
-namespace yz\admin\mailer\common\models;
+namespace yz\admin\mailer\common\mailing;
 use yii\base\Object;
 
 
 /**
- * Class ManualReceiver
+ * Class ManualRecipient
  */
-class ManualReceiver extends Object implements MailReceiverInterface
+class ManualRecipient extends Object implements MailRecipientInterface
 {
-    use MailReceiverTrait;
+    use MailRecipient;
 
     public $email;
 
     /**
      * @return string
      */
-    public function getReceiverEmail()
+    public function getRecipientEmail()
     {
         return $this->email;
     }
@@ -25,7 +25,7 @@ class ManualReceiver extends Object implements MailReceiverInterface
      * Returns an array of mail receiver variables, that are can be used in the mail
      * @return array
      */
-    public function getReceiverVariables()
+    public function getRecipientVariables()
     {
         return [
             '{email}' => $this->email,

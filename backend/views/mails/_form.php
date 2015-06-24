@@ -21,10 +21,10 @@ use yz\admin\widgets\FormBox;
         <?= $form->field($model, 'receiversProviderAttribute')->dropDownList($model->getReceiversProviderValues())->hint(Yii::t('admin/mailer', 'Change of this field will reload current page')) ?>
     </div>
 </div>
-<?php echo $this->render($model->receiversProvider->backendFormView(), [
+<?php echo $this->render($model->mailingList->formView(), [
     'form' => $form,
     'mail' => $model,
-    'provider' => $model->receiversProvider,
+    'provider' => $model->mailingList,
 ]) ?>
 <div class="row">
     <div class="col-md-3  col-md-offset-1">

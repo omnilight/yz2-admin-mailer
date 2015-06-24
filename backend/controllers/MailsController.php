@@ -74,7 +74,7 @@ class MailsController extends Controller
             [
                 'attribute' => 'receivers_provider',
                 'value' => function (Mail $data) {
-                    return $data->getReceiversProvider()->providerTitle();
+                    return $data->getMailingList()->listTitle();
                 }
             ],
 //			'from',
@@ -127,20 +127,16 @@ class MailsController extends Controller
     {
         $model = $this->findModel($id);
 
-        if ($model->loadAll(Yii::$app->request->post())) {
-            if (Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER && $model->saveAll()) {
-                \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
-                return $this->getCreateUpdateResponse($model, [
-                    self::ACTION_SEND_MAIL => function () use ($model) {
-                        if ($this->sendEmails($model)) {
-                            \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
-                        } else {
-                            Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
-                        }
-                        return $this->redirect(['index']);
-                    }
-                ]);
-            }
+        if (
+            $model->loadAll(Yii::$app->request->post()) &&
+            Yii::$app->request->post(AdminHtml::ACTION_BUTTON_NAME) != self::ACTION_CHANGE_RECEIVERS_PROVIDER &&
+            $model->saveAll()
+        ) {
+            \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
+
+            return $this->getCreateUpdateResponse($model, [
+                self::ACTION_SEND_MAIL => [$this, 'updateMailStatus']
+            ]);
         }
 
         return $this->render('update', [
@@ -149,20 +145,31 @@ class MailsController extends Controller
     }
 
     /**
-     * @param Mail $mail
-     * @return bool true if we can send mails immediately
+     * Finds the Mail model based on its primary key value.
+     * If the model is not found, a 404 HTTP exception will be thrown.
+     * @param integer $id
+     * @return Mail the loaded model
+     * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function sendEmails($mail)
+    protected function findModel($id)
     {
-        if ($mail->receiversProvider->canSendImmediately) {
-            $mail->send();
-            return true;
+        if (($model = Mail::findOne($id)) !== null) {
+            return $model;
         } else {
-            $mail->updateAttributes(['status' => Mail::STATUS_WAITING]);
-            return false;
+            throw new NotFoundHttpException('The requested page does not exist.');
         }
     }
 
+    /**
+     * @param Mail $mail
+     * @return bool true if we can send mails immediately
+     */
+    public function updateMailStatus($mail)
+    {
+        $mail->updateAttributes(['status' => Mail::STATUS_WAITING]);
+        Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+        return $this->redirect(['index']);
+    }
 
     /**
      * Deletes an existing Mail model.
@@ -182,21 +189,5 @@ class MailsController extends Controller
         \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, $message);
 
         return $this->redirect(['index']);
-    }
-
-    /**
-     * Finds the Mail model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param integer $id
-     * @return Mail the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
-    {
-        if (($model = Mail::findOne($id)) !== null) {
-            return $model;
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
     }
 }

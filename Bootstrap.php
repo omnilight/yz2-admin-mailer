@@ -25,23 +25,7 @@ class Bootstrap implements BootstrapInterface
         ];
 
         if ($app instanceof \yii\console\Application) {
-            $this->schedule($app);
+            $app->params['yii.migrations'][] = '@yz/admin/mailer/migrations';
         }
-    }
-
-    /**
-     * @param Application $app the application currently running
-     */
-    protected function schedule($app)
-    {
-        if ($app->has('schedule') == false) {
-            return;
-        }
-
-        /** @var Schedule $schedule */
-        $schedule = $app->get('schedule');
-
-        // Sending mails from backend
-        $schedule->command('adminMailer/mails');
     }
 }

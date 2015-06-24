@@ -22,9 +22,9 @@ class Module extends \yz\admin\mailer\common\Module
                 'icon' => Icons::o('envelope'),
                 'items' => [
                     [
-                        'label' => \Yii::t('admin/mailer', 'Emails'),
+                        'label' => \Yii::t('admin/mailer', 'Send mails'),
                         'icon' => Icons::o('envelope-o'),
-                        'route' => ['/adminMailer/mails/index'],
+                        'route' => ['/mailing/mails/index'],
                     ],
                 ],
             ],

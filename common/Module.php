@@ -1,8 +1,8 @@
 <?php
 
 namespace yz\admin\mailer\common;
-use yz\admin\mailer\common\models\ReceiversProviderInterface;
 use yii\helpers\ArrayHelper;
+use yz\admin\mailer\common\lists\ManualMailList;
 
 
 /**
@@ -11,17 +11,17 @@ use yii\helpers\ArrayHelper;
 class Module extends \yz\Module
 {
     /**
-     * @var string[] Class names of the receiver providers
+     * @var string[] Mail lists
      */
-    public $receiversProviders = [];
+    public $mailLists = [];
 
     public function init()
     {
         parent::init();
 
-        $this->receiversProviders = ArrayHelper::merge([
-            'yz\admin\mailer\common\models\ManualReceiverProvider',
-        ], $this->receiversProviders);
+        $this->mailLists = ArrayHelper::merge([
+            ManualMailList::class,
+        ], $this->mailLists);
     }
 
 

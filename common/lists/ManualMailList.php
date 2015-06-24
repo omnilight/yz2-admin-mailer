@@ -1,15 +1,17 @@
 <?php
 
-namespace yz\admin\mailer\common\models;
+namespace yz\admin\mailer\common\lists;
 
 use yii\base\Model;
-use yii\helpers\ArrayHelper;
+use yz\admin\mailer\common\mailing\MailingListInterface;
+use yz\admin\mailer\common\mailing\MailRecipientInterface;
+use yz\admin\mailer\common\mailing\ManualRecipient;
 
 
 /**
- * Class ManualReceiverProvider
+ * Class ManualMailList
  */
-class ManualReceiverProvider extends Model implements ReceiversProviderInterface
+class ManualMailList extends Model implements MailingListInterface
 {
     /**
      * @var string
@@ -19,15 +21,15 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
     /**
      * @return string
      */
-    public static function backendFormView()
+    public static function formView()
     {
-        return '@yz/admin/mailer/backend/views/receiversProviders/manual.php';
+        return '@yz/admin/mailer/common/lists/views/manual.php';
     }
 
     /**
      * @return string
      */
-    public static function providerTitle()
+    public static function listTitle()
     {
         return \Yii::t('admin/mailer', 'Manual receiver');
     }
@@ -47,7 +49,7 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
     /**
      * @return array
      */
-    public function getProviderData()
+    public function listData()
     {
         return [
             'to' => $this->to,
@@ -63,27 +65,17 @@ class ManualReceiverProvider extends Model implements ReceiversProviderInterface
 
 
     /**
-     * @return \Iterator|MailReceiverInterface[]
+     * @return \Iterator|MailRecipientInterface[]
      */
-    public function getReceivers()
+    public function getRecipients()
     {
         $emails = preg_split('/\s*;\s*/', $this->to, -1, PREG_SPLIT_NO_EMPTY);
         $receivers = [];
         foreach ($emails as $email) {
-            $receivers[] = new ManualReceiver([
+            $receivers[] = new ManualRecipient([
                 'email' => $this->to
             ]);
         }
         return new \ArrayIterator($receivers);
-    }
-
-    /**
-     * Returns true if it is possible to send mails immediately. Otherwise they will be sent
-     * via cron job
-     * @return bool
-     */
-    public function getCanSendImmediately()
-    {
-        return true;
     }
 }

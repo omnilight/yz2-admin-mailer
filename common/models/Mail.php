@@ -7,8 +7,9 @@ use yii\base\Model;
 use yii\behaviors\TimestampBehavior;
 use yii\db\Expression;
 use yii\di\Instance;
-use yii\helpers\ArrayHelper;
 use yii\helpers\Json;
+use yz\admin\mailer\common\lists\ManualMailList;
+use yz\admin\mailer\common\mailing\MailingListInterface;
 use yz\admin\mailer\common\Module;
 use yz\interfaces\ModelInfoInterface;
 
@@ -26,7 +27,7 @@ use yz\interfaces\ModelInfoInterface;
  * @property string $created_at
  * @property string $sent_at
  *
- * @property ReceiversProviderInterface|Model $receiversProvider
+ * @property MailingListInterface|Model $mailingList
  * @property string $receiversProviderAttribute
  */
 class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
@@ -62,11 +63,19 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         return Yii::t('admin/mailer', 'Mails');
     }
 
+    /**
+     * @return Module
+     */
+    protected static function getModule()
+    {
+        return Yii::$app->getModule('mailing');
+    }
+
     public function init()
     {
         parent::init();
         if ($this->receivers_provider === null) {
-            $this->receivers_provider = ManualReceiverProvider::className();
+            $this->receivers_provider = ManualMailList::className();
         }
         if ($this->receivers_provider_data === null) {
             $this->receivers_provider_data = '[]';
@@ -141,45 +150,45 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     /**
      * @var array
      */
-    protected $_receiversProvider;
+    protected $_mailingList;
 
     /**
-     * @return ReceiversProviderInterface
+     * @return MailingListInterface
      */
-    public function getReceiversProvider()
+    public function getMailingList()
     {
         $hash = md5($this->receivers_provider);
-        if ($this->_receiversProvider === null) {
-            $this->_receiversProvider = [Yii::createObject(array_merge([
+        if ($this->_mailingList === null) {
+            $this->_mailingList = [Yii::createObject(array_merge([
                 'class' => $this->receivers_provider,
             ], Json::decode($this->receivers_provider_data))), $hash];
-        } elseif ($this->_receiversProvider[1] !== $hash) {
+        } elseif ($this->_mailingList[1] !== $hash) {
             $this->receivers_provider_data = [];
-            $this->_receiversProvider = [Yii::createObject(array_merge([
+            $this->_mailingList = [Yii::createObject(array_merge([
                 'class' => $this->receivers_provider,
             ], Json::decode($this->receivers_provider_data))), $hash];
         }
 
-        return $this->_receiversProvider[0];
+        return $this->_mailingList[0];
     }
 
     /**
-     * @param array|string|ReceiversProviderInterface $receiversProvider
+     * @param array|string|MailingListInterface $mailingList
      * @throws \yii\base\InvalidConfigException
      */
-    public function setReceiversProvider($receiversProvider)
+    public function setMailingList($mailingList)
     {
-        if (is_array($receiversProvider)) {
-            $receiversProvider = Instance::ensure($receiversProvider, 'yz\admin\mailer\common\models\ReceiversProviderInterface');
+        if (is_array($mailingList)) {
+            $mailingList = Instance::ensure($mailingList, MailingListInterface::class);
         }
 
-        if ($receiversProvider instanceof ReceiversProviderInterface) {
-            $this->_receiversProvider = $receiversProvider;
-            $this->receivers_provider = get_class($receiversProvider);
-        } elseif (is_string($receiversProvider)) {
-            $this->receivers_provider = $receiversProvider;
+        if ($mailingList instanceof MailingListInterface) {
+            $this->_mailingList = $mailingList;
+            $this->receivers_provider = get_class($mailingList);
+        } elseif (is_string($mailingList)) {
+            $this->receivers_provider = $mailingList;
             $this->receivers_provider_data = '[]';
-            $this->_receiversProvider = null;
+            $this->_mailingList = null;
         }
     }
 
@@ -196,7 +205,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
      */
     public function setReceiversProviderAttribute($receiversProviderAttribute)
     {
-        $this->setReceiversProvider($receiversProviderAttribute);
+        $this->setMailingList($receiversProviderAttribute);
     }
 
     /**
@@ -206,7 +215,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     public function loadAll($data)
     {
         $result = $this->load($data);
-        $result = $this->receiversProvider->load($data) && $result;
+        $result = $this->mailingList->load($data) && $result;
         return $result;
     }
 
@@ -216,7 +225,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     public function validateAll()
     {
         $result = $this->validate();
-        $result = $this->receiversProvider->validate() && $result;
+        $result = $this->mailingList->validate() && $result;
         return $result;
     }
 
@@ -235,7 +244,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
 
     public function beforeSave($insert)
     {
-        $this->receivers_provider_data = Json::encode($this->getReceiversProvider()->getProviderData());
+        $this->receivers_provider_data = Json::encode($this->getMailingList()->listData());
         $this->status = self::STATUS_NEW;
 
         return parent::beforeSave($insert);
@@ -247,8 +256,8 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     public static function getReceiversProviderValues()
     {
         $values = [];
-        foreach (Yii::$app->getModule('adminMailer')->receiversProviders as $providerClass) {
-            $values[$providerClass] = call_user_func([$providerClass, 'providerTitle']);
+        foreach (self::getModule()->mailLists as $mailingList) {
+            $values[$mailingList] = call_user_func([$mailingList, 'listTitle']);
         }
         return $values;
     }
@@ -257,8 +266,8 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     {
         $this->updateAttributes(['status' => self::STATUS_SENDING]);
 
-        foreach ($this->receiversProvider->receivers as $receiver) {
-            $receiver->sendToReceiver($this);
+        foreach ($this->mailingList->recipients as $receiver) {
+            $receiver->sendToRecipient($this);
         }
 
         $this->updateAttributes([

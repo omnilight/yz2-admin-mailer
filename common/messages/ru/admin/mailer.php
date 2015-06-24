@@ -18,6 +18,7 @@
  */
 return [
     'Available variables' => 'Доступные переменные',
+    'Send mails' => 'Отправка почты',
     'Description' => 'Описание',
     'Email of the current recipient of the letter' => 'Электронная почта получателя письма',
     'Following variables could be used in the mail body and subject in form <code>{variable_name}</code>' => 'Переменные ниже могут быть использованы в теле письма и в теме в следующем виде <code>{имя_переменной}</code>',

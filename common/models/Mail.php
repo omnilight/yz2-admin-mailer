@@ -239,7 +239,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
      */
     public function saveAll()
     {
-        if (!$this->validateAll() == false) {
+        if ($this->validateAll() == false) {
             return false;
         }
 

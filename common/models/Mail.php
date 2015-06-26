@@ -27,7 +27,7 @@ use yz\interfaces\ModelInfoInterface;
  * @property string $created_at
  * @property string $sent_at
  *
- * @property MailingListInterface|Model $mailingList
+ * @property MailingListInterface $mailingList
  * @property string $receiversProviderAttribute
  */
 class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
@@ -215,7 +215,9 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     public function loadAll($data)
     {
         $result = $this->load($data);
-        $result = $this->mailingList->load($data) && $result;
+        if ($this->mailingList instanceof Model) {
+            $result = $this->mailingList->load($data) && $result;
+        }
         return $result;
     }
 
@@ -225,7 +227,9 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     public function validateAll()
     {
         $result = $this->validate();
-        $result = $this->mailingList->validate() && $result;
+        if ($this->mailingList instanceof Model) {
+            $result = $this->mailingList->validate() && $result;
+        }
         return $result;
     }
 
@@ -233,19 +237,22 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
      * @param bool $runValidation
      * @return bool
      */
-    public function saveAll($runValidation = true)
+    public function saveAll()
     {
-        if (!$runValidation || $this->validateAll()) {
-            return $this->save(false);
-        } else {
+        if (!$this->validateAll() == false) {
             return false;
         }
+
+        return $this->save(false);
     }
 
     public function beforeSave($insert)
     {
-        $this->receivers_provider_data = Json::encode($this->getMailingList()->listData());
-        $this->status = self::STATUS_NEW;
+        $this->receivers_provider_data = Json::encode($this->mailingList->listData());
+
+        if ($insert) {
+            $this->status = self::STATUS_NEW;
+        }
 
         return parent::beforeSave($insert);
     }
@@ -273,6 +280,14 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
         $this->updateAttributes([
             'status' => self::STATUS_SENT,
             'last_sent_at' => new Expression('NOW()'),
+        ]);
+    }
+
+    public function waitForSending()
+    {
+        $this->updateAttributes([
+            'status' => self::STATUS_WAITING,
+            'last_sent_at' => null,
         ]);
     }
 }

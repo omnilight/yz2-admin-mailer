@@ -101,12 +101,7 @@ class MailsController extends Controller
                 \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully created'));
                 return $this->getCreateUpdateResponse($model, [
                     self::ACTION_SEND_MAIL => function () use ($model) {
-                        if ($this->sendEmails($model)) {
-                            \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/mailer', 'Mails were successfully sent'));
-                        } else {
-                            Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
-                        }
-                        return $this->redirect(['index']);
+                        return $this->sendMail($model);
                     }
                 ]);
             }
@@ -115,6 +110,13 @@ class MailsController extends Controller
         return $this->render('create', [
             'model' => $model,
         ]);
+    }
+
+    public function sendMail(Mail $model)
+    {
+        $model->waitForSending();
+        Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+        return $this->redirect(['index']);
     }
 
     /**
@@ -158,17 +160,6 @@ class MailsController extends Controller
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
-    }
-
-    /**
-     * @param Mail $mail
-     * @return bool true if we can send mails immediately
-     */
-    public function updateMailStatus($mail)
-    {
-        $mail->updateAttributes(['status' => Mail::STATUS_WAITING]);
-        Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
-        return $this->redirect(['index']);
     }
 
     /**

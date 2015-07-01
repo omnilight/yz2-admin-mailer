@@ -2,7 +2,7 @@
 
 use yii\helpers\Html;
 use yz\admin\widgets\Box;
-use yz\admin\widgets\GridView;
+use yz\admin\grid\GridView;
 use yz\admin\widgets\ActionButtons;
 
 /**

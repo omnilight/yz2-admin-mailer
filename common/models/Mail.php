@@ -273,7 +273,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     {
         $this->updateAttributes(['status' => self::STATUS_SENDING]);
 
-        foreach ($this->mailingList->recipients as $receiver) {
+        foreach ($this->mailingList->getRecipients() as $receiver) {
             $receiver->sendToRecipient($this);
         }
 

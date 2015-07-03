@@ -9,7 +9,7 @@
 ?>
 <div class="row">
     <div class="col-md-4 col-md-offset-1">
-        <?= $form->field($provider, 'to')->input('email')->hint(Yii::t('admin/mailer', 'You can set multiple emails separated by <code>;</code> symbol')) ?>
+        <?= $form->field($provider, 'to')->textInput()->hint(Yii::t('admin/mailer', 'You can set multiple emails separated by <code>;</code> symbol')) ?>
     </div>
 </div>
 <div class="row">

@@ -18,7 +18,7 @@ class MailsController extends Controller
      */
     public $defaultAction = 'send';
 
-    public function actionSend()
+    public function actionSend($status = Mail::STATUS_WAITING)
     {
         $mutex = new FileMutex();
         if ($mutex->acquire(__CLASS__) === false) {
@@ -26,7 +26,7 @@ class MailsController extends Controller
             return self::EXIT_CODE_NORMAL;
         }
 
-        $mailsQuery = Mail::find()->where(['status' => Mail::STATUS_WAITING])->orderBy('created_at ASC');
+        $mailsQuery = Mail::find()->where(['status' => $status])->orderBy('created_at ASC');
 
         foreach ($mailsQuery->each() as $mail) {
             /** @var Mail $mail */
@@ -37,5 +37,15 @@ class MailsController extends Controller
         $mutex->release(__CLASS__);
 
         return self::EXIT_CODE_NORMAL;
+    }
+
+    public function actionList()
+    {
+        $mailsQuery = Mail::find()->orderBy('created_at ASC');
+
+        foreach ($mailsQuery->each() as $mail) {
+            /** @var Mail $mail */
+            $this->stdout("#{$mail->id} - {$mail->status}\n");
+        }
     }
 }

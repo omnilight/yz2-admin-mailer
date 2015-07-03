@@ -5,7 +5,6 @@ namespace yz\admin\mailer\common\lists;
 use yii\base\Model;
 use yz\admin\mailer\common\mailing\MailingListInterface;
 use yz\admin\mailer\common\mailing\MailRecipientInterface;
-use yz\admin\mailer\common\mailing\ManualRecipient;
 
 
 /**
@@ -73,7 +72,7 @@ class ManualMailList extends Model implements MailingListInterface
         $receivers = [];
         foreach ($emails as $email) {
             $receivers[] = new ManualRecipient([
-                'email' => $this->to
+                'email' => $email
             ]);
         }
         return new \ArrayIterator($receivers);

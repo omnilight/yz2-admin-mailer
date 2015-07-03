@@ -1,7 +1,9 @@
 <?php
 
-namespace yz\admin\mailer\common\mailing;
+namespace yz\admin\mailer\common\lists;
 use yii\base\Object;
+use yz\admin\mailer\common\mailing\MailRecipient;
+use yz\admin\mailer\common\mailing\MailRecipientInterface;
 
 
 /**

@@ -21,6 +21,11 @@ trait MailRecipient
     public function sendToRecipient($mail)
     {
         /** @var MailRecipientInterface|MailRecipient $this  */
+        $email = $this->getRecipientEmail();
+        if ($email == '') {
+            return;
+        }
+
         $this->getRecipientMailer()
             ->compose('@yz/admin/mailer/common/mails/adminMailer.php', [
                 'mail' => $mail,

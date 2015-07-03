@@ -132,7 +132,11 @@ class MailsController extends Controller
             \Yii::$app->session->setFlash(Yz::FLASH_SUCCESS, \Yii::t('admin/t', 'Record was successfully updated'));
 
             return $this->getCreateUpdateResponse($model, [
-                self::ACTION_SEND_MAIL => [$this, 'updateMailStatus']
+                self::ACTION_SEND_MAIL => function () use ($model) {
+                    $model->waitForSending();
+                    Yii::$app->session->setFlash(Yz::FLASH_INFO, Yii::t('admin/mailer', 'Mails are placed in the queue and will be sent soon'));
+                    return $this->redirect(['index']);
+                }
             ]);
         }
 

@@ -32,8 +32,8 @@ trait MailRecipient
                 'subject' => strtr($mail->subject, $this->getRecipientVariables()),
                 'body' => strtr($mail->body_html, $this->getRecipientVariables()),
             ])
-            ->setTo($this->getRecipientEmail())
-            ->setFrom([$mail->from => $mail->from_name])
+            ->setTo(trim($this->getRecipientEmail()))
+            ->setFrom([trim($mail->from) => $mail->from_name])
             ->send();
     }
 }

@@ -31,7 +31,13 @@ class MailsController extends Controller
         foreach ($mailsQuery->each() as $mail) {
             /** @var Mail $mail */
             $this->stdout("Sending mail #{$mail->id}\n");
+            $counter = 0;
+            $mail->on(Mail::EVENT_SINGLE_MAIL_SENT, function() use (&$counter) {
+                $counter++;
+                $this->stdout("  sent ".$counter."\r");
+            });
             $mail->send();
+            $this->stdout("\n");
         }
 
         $mutex->release(__CLASS__);

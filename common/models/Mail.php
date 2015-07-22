@@ -36,6 +36,8 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     const STATUS_WAITING = 'waiting';
     const STATUS_SENDING = 'sending';
     const STATUS_SENT = 'sent';
+    const EVENT_SINGLE_MAIL_SENT = 'singleMailSent';
+    const EVENT_MAIL_SENT = 'mailSent';
 
     /**
      * @inheritdoc
@@ -275,12 +277,14 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
 
         foreach ($this->mailingList->getRecipients() as $receiver) {
             $receiver->sendToRecipient($this);
+            $this->trigger(self::EVENT_SINGLE_MAIL_SENT);
         }
 
         $this->updateAttributes([
             'status' => self::STATUS_SENT,
             'last_sent_at' => new Expression('NOW()'),
         ]);
+        $this->trigger(self::EVENT_MAIL_SENT);
     }
 
     public function waitForSending()

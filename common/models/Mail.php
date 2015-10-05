@@ -106,6 +106,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
             [['body_html'], 'required'],
             [['body_html'], 'string'],
             [['from'], 'required'],
+            [['from'], 'email'],
             [['from_name'], 'required'],
             [['subject'], 'required'],
 

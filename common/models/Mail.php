@@ -103,7 +103,7 @@ class Mail extends \yz\db\ActiveRecord implements ModelInfoInterface
     {
         return [
             [['receivers_provider'], 'required'],
-            [['body_html'], 'required'],
+            [['body_html'], 'required', 'enableClientValidation' => false],
             [['body_html'], 'string'],
             [['from'], 'required'],
             [['from'], 'email'],
